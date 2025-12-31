@@ -1,0 +1,69 @@
+// 4 LEDs
+const int leds[4] = {1,2,3,4};
+
+// 28BYJ-48 Stepper (ULN2003 MCU-10)
+const int stepPins[4] = {A0,A1,A2,A3};
+const byte stepSequence[8][4] = {
+  {1,0,0,0},
+  {1,1,0,0},
+  {0,1,0,0},
+  {0,1,1,0},
+  {0,0,1,0},
+  {0,0,1,1},
+  {0,0,0,1},
+  {1,0,0,1}
+};
+
+int stepIndex = 0;
+
+// Stepper settings
+const int stepsPerFullRotation = 2048;   // Full rotation
+const int totalLEDs = 4;                 // 4 LEDs
+const int stepsPerLED = stepsPerFullRotation / totalLEDs; // 512 steps per LED
+const int delayEntrePassos = 5;          // ms for smooth motion
+
+int stepCounter = 0;
+int ledIndex = 0;
+
+void setup() {
+  // Initialize LEDs
+  for(int i=0;i<4;i++){
+    pinMode(leds[i],OUTPUT);
+    digitalWrite(leds[i],LOW);
+  }
+  atualizarLED();
+
+  // Initialize stepper pins
+  for(int i=0;i<4;i++){
+    pinMode(stepPins[i],OUTPUT);
+  }
+}
+
+void loop() {
+  // Step the motor
+  stepMotor();
+  stepCounter++;
+
+  // Update LED every quarter rotation
+  if(stepCounter >= stepsPerLED){
+    stepCounter = 0;
+    ledIndex++;
+    if(ledIndex >= totalLEDs) ledIndex = 0;
+    atualizarLED();
+  }
+
+  delay(delayEntrePassos);
+}
+
+void stepMotor() {
+  for(int i=0;i<4;i++){
+    digitalWrite(stepPins[i],stepSequence[stepIndex][i]);
+  }
+  stepIndex++;
+  if(stepIndex>=8) stepIndex = 0;
+}
+
+void atualizarLED() {
+  for(int i=0;i<4;i++) digitalWrite(leds[i],LOW);
+  digitalWrite(leds[ledIndex],HIGH);
+}
